@@ -1,37 +1,29 @@
-import numpy as np
-from PIL import Image
-import cv2  # opencv
-import io
-import time
-import pandas as pd
-import numpy as np
-from IPython.display import clear_output
-from random import randint
+import base64
+import json
 import os
+import pickle
+import random
+import time
+from collections import deque
+from io import BytesIO
 
+import cv2  # opencv
+import numpy as np
+import pandas as pd
+from IPython.display import clear_output
+from PIL import Image
+from keras.layers.convolutional import Conv2D, MaxPooling2D
+from keras.layers.core import Dense, Activation, Flatten
+# keras imports
+from keras.models import Sequential
+from keras.optimizers import Adam
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.keys import Keys
 
-# keras imports
-from keras.models import model_from_json
-from keras.models import Sequential
-from keras.layers.core import Dense, Dropout, Activation, Flatten
-from keras.layers.convolutional import Conv2D, MaxPooling2D
-from keras.optimizers import SGD, Adam
-from keras.callbacks import TensorBoard
-from collections import deque
-import random
-import pickle
-from io import BytesIO
-import base64
-import json
-
-from selenium import webdriver
-from webdriver_manager.chrome import ChromeDriverManager
-
 # path variables
-game_url = "chrome://dino"
+# game_url = "chrome://dino"
+game_url = "https://chromedino.com/"
 chrome_driver_path = "chromedriver.exe"
 loss_file_path = "./objects/loss_df.csv"
 actions_file_path = "./objects/actions_df.csv"
@@ -69,12 +61,17 @@ class Game:
         # chrome_options.add_argument('--ignore-ssl-errors=yes')
         # chrome_options.add_argument('--ignore-certificate-errors')
         # chrome_options.add_argument("--disable-gpu")
-        self._driver = webdriver.Chrome(ChromeDriverManager().install(), options=chrome_options)
-        # self._driver = webdriver.Chrome(executable_path=chrome_driver_path, options=chrome_options)
-        self._driver.set_window_position(x=-10, y=0)
-        self._driver.get('https://chromedino.com/')
-        self._driver.execute_script("Runner.config.ACCELERATION=0")
-        self._driver.execute_script(init_script)
+        # self._driver = webdriver.Chrome(ChromeDriverManager().install(), options=chrome_options)
+        self._driver = webdriver.Chrome(executable_path=chrome_driver_path, options=chrome_options)
+        self._driver.set_window_position(x=1200, y=0)
+        try:
+            self._driver.get(game_url)
+            # Workaround for offline
+        finally:
+            self._driver.execute_script("Runner.config.ACCELERATION=0")
+            self._driver.execute_script("Runner.config.MAX_CLOUDS=0")
+            self._driver.execute_script("Runner.instance_.horizon.config.MAX_CLOUDS=0")
+            self._driver.execute_script(init_script)
 
     def get_crashed(self):
         return self._driver.execute_script("return Runner.instance_.crashed")
@@ -106,8 +103,8 @@ class Game:
 
 class DinoAgent:
     def __init__(self, game):  # takes game as input for taking actions
-        self._game = game;
-        self.jump();  # to start the game, we need to jump once
+        self._game = game
+        self.jump()  # to start the game, we need to jump once
 
     def is_running(self):
         return self._game.get_playing()
@@ -165,7 +162,7 @@ def grab_screen(_driver):
 
 def process_img(image):
     image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)  # RGB to Grey Scale
-    image = image[:300, :500]  # Crop Region of Interest(ROI)
+    image = image[50:125, 45:500]  # Crop Region of Interest(ROI)
     image = cv2.resize(image, (80, 80))
     return image
 
@@ -178,7 +175,7 @@ def show_img(graphs=False):
         screen = (yield)
         window_title = "logs" if graphs else "game_play"
         cv2.namedWindow(window_title, cv2.WINDOW_NORMAL)
-        imS = cv2.resize(screen, (800, 400))
+        # imS = cv2.resize(screen, (400, 600))
         cv2.imshow(window_title, screen)
         if (cv2.waitKey(1) & 0xFF == ord('q')):
             cv2.destroyAllWindows()
@@ -214,13 +211,6 @@ def init_cache():
     save_obj(t, "time")
     D = deque()
     save_obj(D, "D")
-
-
-'''Call only once to init file structure
-'''
-
-
-# init_cache()
 
 
 def buildmodel():
@@ -403,5 +393,7 @@ def playGame(observe=False):
     except StopIteration:
         game.end()
 
-
-playGame(observe=True);
+'''Call only once to init file structure
+'''
+init_cache()
+playGame(observe=False)

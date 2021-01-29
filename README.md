@@ -9,25 +9,21 @@ Accompanying code for Paperspace tutorial ["Build an AI to play Dino Run"](https
 [![Video Sample](https://media.giphy.com/media/Ahh7X6z7jZSSl4veLf/giphy.gif)](http://www.youtube.com/watch?v=w1Rqf2oxcPU)
 
 # Installation 
-Start by cloning the repository
-<br>
-<br>
-`$ git clone https://github.com/Paperspace/DinoRunTutorial.git`
-<br>
+## Install Dependencies
+- keras
+- tensorflow
+- selenium
+- opencv-python
+
+- pandas
+- IPython
+- Image
+- webdriver-manager
+
+
+- matplotlib
+- seaborn
+
 You need to initialize the file system to save progress and resume from last step.<br/>
 Invoke `init_cache()` for the first time to do this <br/>
 
-
-Dependencies can be installed using pip install or conda install for Anaconda environment<br><br>
-
-- Python 3.6 Environment with ML libraries installed (numpy,pandas,keras,tensorflow etc)
-- Selenium
-- OpenCV
-- ChromeDriver
-
-<br><br>
-ChromeDriver can be installed by going to (link - https://chromedriver.chromium.org/downloads) and also download the driver according to your chrome version which can be found under settings->About Chrome.
-<br>
-Change the path of chrome driver accordingly in Reinforcement Learning Dino Run.ipynb.(Default ="../chromedriver")
-
-<br/>
