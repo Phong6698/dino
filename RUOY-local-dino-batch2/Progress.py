@@ -9,9 +9,9 @@ import pandas as pd
 
 start = 0
 interval = 10
-scores_df = pd.read_csv("./objects/scores_df.csv")
+scores_df = pd.read_csv("objects/scores_df.csv")
 mean_scores = pd.DataFrame(columns=['score'])
-actions_df = pd.read_csv("./objects/actions_df.csv")
+actions_df = pd.read_csv("objects/actions_df.csv")
 max_scores = pd.DataFrame(columns=['max_score'])
 q_max_scores = pd.DataFrame(columns=['q_max'])
 while interval <= len(scores_df):
@@ -20,7 +20,7 @@ while interval <= len(scores_df):
     start = interval
     interval = interval + 10
 
-q_max_df = pd.read_csv("./objects/q_values.csv")
+q_max_df = pd.read_csv("objects/q_values.csv")
 
 start = 0
 interval = 1000
