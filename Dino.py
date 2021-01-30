@@ -6,7 +6,7 @@ import random
 import time
 from collections import deque
 from io import BytesIO
-
+from PIL import ImageGrab #grabbing image
 import cv2  # opencv
 import numpy as np
 import pandas as pd
@@ -22,9 +22,10 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.keys import Keys
 
 # path variables
-# game_url = "chrome://dino"
-game_url = "https://chromedino.com/"
-chrome_driver_path = "chromedriver.exe"
+# game_url = "chrome://dino/"
+# game_url = "https://chromedino.com/"
+game_url = "game/dino.html"
+chrome_driver_path = "../chromedriver.exe"
 loss_file_path = "./objects/loss_df.csv"
 actions_file_path = "./objects/actions_df.csv"
 q_value_file_path = "./objects/q_values.csv"
@@ -37,6 +38,7 @@ init_script = "document.getElementsByClassName('runner-canvas')[0].id = 'runner-
 # get image from canvas
 getbase64Script = "canvasRunner = document.getElementById('runner-canvas'); \
 return canvasRunner.toDataURL().substring(22)"
+
 
 '''
 * Game class: Selenium interfacing between the python and browser
@@ -58,14 +60,16 @@ class Game:
         chrome_options.add_argument("disable-infobars")
         chrome_options.add_argument("--mute-audio")
         chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("--disable-web-security")
         # chrome_options.add_argument('--ignore-ssl-errors=yes')
         # chrome_options.add_argument('--ignore-certificate-errors')
         # chrome_options.add_argument("--disable-gpu")
         # self._driver = webdriver.Chrome(ChromeDriverManager().install(), options=chrome_options)
         self._driver = webdriver.Chrome(executable_path=chrome_driver_path, options=chrome_options)
-        self._driver.set_window_position(x=1200, y=0)
+        self._driver.set_window_position(x=-1400, y=0)
         try:
-            self._driver.get(game_url)
+            # self._driver.get(game_url)
+            self._driver.get(os.path.abspath(game_url))
             # Workaround for offline
         finally:
             self._driver.execute_script("Runner.config.ACCELERATION=0")
@@ -159,10 +163,9 @@ def grab_screen(_driver):
     image = process_img(screen)  # processing image as required
     return image
 
-
 def process_img(image):
     image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)  # RGB to Grey Scale
-    image = image[50:125, 45:500]  # Crop Region of Interest(ROI)
+    image = image[:300, :500]  # Crop Region of Interest(ROI)
     image = cv2.resize(image, (80, 80))
     return image
 
@@ -196,12 +199,11 @@ EXPLORE = 100000  # frames over which to anneal epsilon
 FINAL_EPSILON = 0.0001  # final value of epsilon
 INITIAL_EPSILON = 0.1  # starting value of epsilon
 REPLAY_MEMORY = 50000  # number of previous transitions to remember
-BATCH = 16  # size of minibatch
+BATCH = 2  # size of minibatch
 FRAME_PER_ACTION = 1
 LEARNING_RATE = 1e-4
 img_rows, img_cols = 80, 80
-img_channels = 4  # We stack 4 frames
-
+img_channels = 4  #We stack 4 frames
 
 # training variables saved as checkpoints to filesystem to resume training from the same step
 def init_cache():
@@ -306,7 +308,7 @@ def trainNetwork(model, game_state, observe=False):
         if epsilon > FINAL_EPSILON and t > OBSERVE:
             epsilon -= (INITIAL_EPSILON - FINAL_EPSILON) / EXPLORE
 
-            # run the selected action and observed next state and reward
+        # run the selected action and observed next state and reward
         x_t1, r_t, terminal = game_state.get_state(a_t)
         print('fps: {0}'.format(1 / (time.time() - last_time)))  # helpful for measuring frame rate
         last_time = time.time()
@@ -395,5 +397,6 @@ def playGame(observe=False):
 
 '''Call only once to init file structure
 '''
-init_cache()
+# init_cache()
 playGame(observe=False)
+
