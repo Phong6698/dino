@@ -25,7 +25,7 @@ from selenium.webdriver.common.keys import Keys
 # game_url = "chrome://dino/"
 # game_url = "https://chromedino.com/"
 game_url = "game/dino.html"
-chrome_driver_path = "../../chromedriver.exe"
+chrome_driver_path = "../chromedriver.exe"
 loss_file_path = "objects/loss_df.csv"
 actions_file_path = "objects/actions_df.csv"
 q_value_file_path = "objects/q_values.csv"
@@ -397,6 +397,6 @@ def playGame(observe=False):
 
 '''Call only once to init file structure
 '''
-# init_cache()
+init_cache()
 playGame(observe=False)
 
