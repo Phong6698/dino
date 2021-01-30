@@ -57,7 +57,7 @@ class Game:
         chrome_options = Options()
         chrome_options.add_argument("disable-infobars")
         chrome_options.add_argument("--mute-audio")
-        chrome_options.add_argument("--no-sandbox")
+        # chrome_options.add_argument("--no-sandbox")
         # chrome_options.add_argument('--ignore-ssl-errors=yes')
         # chrome_options.add_argument('--ignore-certificate-errors')
         # chrome_options.add_argument("--disable-gpu")
@@ -71,6 +71,8 @@ class Game:
             self._driver.execute_script("Runner.config.ACCELERATION=0")
             self._driver.execute_script("Runner.config.MAX_CLOUDS=0")
             self._driver.execute_script("Runner.instance_.horizon.config.MAX_CLOUDS=0")
+            # self._driver.execute_script("Runner.config.SPEED=1")
+            # self._driver.execute_script("Runner.instance_.setSpeed(1)")
             self._driver.execute_script(init_script)
 
     def get_crashed(self):
@@ -162,7 +164,8 @@ def grab_screen(_driver):
 
 def process_img(image):
     image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)  # RGB to Grey Scale
-    image = image[50:125, 45:500]  # Crop Region of Interest(ROI)
+    # image = image[90:125, 67:600]  # Crop Region of Interest(ROI)
+    image = image[:300, :500]  # Crop Region of Interest(ROI)
     image = cv2.resize(image, (80, 80))
     return image
 
@@ -205,13 +208,18 @@ img_channels = 4  # We stack 4 frames
 
 # training variables saved as checkpoints to filesystem to resume training from the same step
 def init_cache():
-    """initial variable caching, done only once"""
-    save_obj(INITIAL_EPSILON, "epsilon")
-    t = 0
-    save_obj(t, "time")
-    D = deque()
-    save_obj(D, "D")
-
+    try:
+        load_obj("epsilon")
+        load_obj("time")
+        load_obj("D")
+        print("Cache exist -> resume from cache")
+    except FileNotFoundError:
+        print("Cache doesn't exist -> init cache")
+        save_obj(INITIAL_EPSILON, "epsilon")
+        t = 0
+        save_obj(t, "time")
+        D = deque()
+        save_obj(D, "D")
 
 def buildmodel():
     print("Now we build the model")
@@ -351,7 +359,7 @@ def trainNetwork(model, game_state, observe=False):
         t = t + 1
 
         # save progress every 1000 iterations
-        if t % 1000 == 0:
+        if t % 500 == 0:
             print("Now we save model")
             game_state._game.pause()  # pause game while saving to filesystem
             model.save_weights("model.h5", overwrite=True)
@@ -392,6 +400,7 @@ def playGame(observe=False):
         trainNetwork(model, game_state, observe=observe)
     except StopIteration:
         game.end()
+
 
 '''Call only once to init file structure
 '''
