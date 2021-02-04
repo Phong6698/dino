@@ -73,8 +73,8 @@ class Game:
             # Workaround for offline
         finally:
             # self._driver.execute_script("Runner.config.ACCELERATION=0")
-            self._driver.execute_script("Runner.config.MAX_CLOUDS=0")
-            self._driver.execute_script("Runner.instance_.horizon.config.MAX_CLOUDS=0")
+            # self._driver.execute_script("Runner.config.MAX_CLOUDS=0")
+            # self._driver.execute_script("Runner.instance_.horizon.config.MAX_CLOUDS=0")
             # self._driver.execute_script("Runner.config.SPEED=1")
             # self._driver.execute_script("Runner.instance_.setSpeed(1)")
             self._driver.execute_script(init_script)
@@ -168,7 +168,7 @@ def grab_screen(_driver):
 
 def process_img(image):
     image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)  # RGB to Grey Scale
-    # image = image[90:125, 67:600]  # Crop Region of Interest(ROI)
+    # image = image[90:125, 85:600]  # Crop Region of Interest(ROI)
     image = image[:300, :500]  # Crop Region of Interest(ROI)
     image = cv2.resize(image, (80, 80))
     return image
@@ -203,7 +203,7 @@ EXPLORE = 100000  # frames over which to anneal epsilon
 FINAL_EPSILON = 0.0001  # final value of epsilon
 INITIAL_EPSILON = 0.1  # starting value of epsilon
 REPLAY_MEMORY = 50000  # number of previous transitions to remember
-BATCH = 16  # size of minibatch
+BATCH = 2  # size of minibatch
 FRAME_PER_ACTION = 1
 LEARNING_RATE = 1e-4
 img_rows, img_cols = 80, 80
@@ -212,18 +212,16 @@ img_channels = 4  # We stack 4 frames
 
 # training variables saved as checkpoints to filesystem to resume training from the same step
 def init_cache():
-    try:
-        load_obj("epsilon")
-        load_obj("time")
-        load_obj("D")
+    if os.path.isfile('objects/epsilon.pkl') and os.path.isfile('objects/epsilon.pkl') and os.path.isfile('objects/epsilon.pkl'):
         print("Cache exist -> resume from cache")
-    except FileNotFoundError:
+    else:
         print("Cache doesn't exist -> init cache")
         save_obj(INITIAL_EPSILON, "epsilon")
         t = 0
         save_obj(t, "time")
         D = deque()
         save_obj(D, "D")
+
 
 def buildmodel():
     print("Now we build the model")
@@ -363,7 +361,7 @@ def trainNetwork(model, game_state, observe=False):
         t = t + 1
 
         # save progress every 1000 iterations
-        if t % 500 == 0:
+        if t % 1000 == 0:
             print("Now we save model")
             game_state._game.pause()  # pause game while saving to filesystem
             model.save_weights("model.h5", overwrite=True)
